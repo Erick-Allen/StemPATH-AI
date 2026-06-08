@@ -1,0 +1,14 @@
+services:
+  arangodb:
+    image: arangodb:3.12
+    container_name: stem-career-arangodb
+    ports:
+      - "127.0.0.1:8529:8529"
+    environment:
+      ARANGO_ROOT_PASSWORD: ${ARANGO_PASSWORD}
+    volumes:
+      - arangodb_data:/var/lib/arangodb3
+    restart: unless-stopped
+
+volumes:
+  arangodb_data:

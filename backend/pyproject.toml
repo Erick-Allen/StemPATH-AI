@@ -1,0 +1,10 @@
+[project]
+name = "stempath-ai"
+version = "0.1.0"
+description = "Backend for StemPATH-AI, a GraphRAG STEM career assistant"
+readme = "README.md"
+requires-python = ">=3.12"
+dependencies = [
+    "python-arango>=8.3.3",
+    "python-dotenv>=1.2.2",
+]
