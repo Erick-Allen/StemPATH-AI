@@ -1,0 +1,29 @@
+[
+  {
+    "key": "software_developer",
+    "title": "Software Developer",
+    "description": "Designs, builds, tests, and maintains software applications and systems.",
+    "domain": "Software Engineering",
+    "skills": ["Programming", "Critical Thinking", "Problem Solving", "Systems Analysis"],
+    "technologies": ["Python", "JavaScript", "SQL", "Git"],
+    "tasks": ["Write and test code", "Debug software", "Design application features"]
+  },
+  {
+    "key": "data_scientist",
+    "title": "Data Scientist",
+    "description": "Uses statistics, programming, and machine learning to analyze data and support decisions.",
+    "domain": "Data Science",
+    "skills": ["Statistics", "Programming", "Data Analysis", "Machine Learning"],
+    "technologies": ["Python", "SQL", "Pandas", "Jupyter"],
+    "tasks": ["Analyze datasets", "Build predictive models", "Communicate insights"]
+  },
+  {
+    "key": "cybersecurity_analyst",
+    "title": "Cybersecurity Analyst",
+    "description": "Protects systems and networks by monitoring threats, analyzing incidents, and improving security controls.",
+    "domain": "Cybersecurity",
+    "skills": ["Security Analysis", "Risk Assessment", "Problem Solving", "Network Security"],
+    "technologies": ["SIEM Tools", "Linux", "Python", "Firewalls"],
+    "tasks": ["Monitor security alerts", "Investigate incidents", "Document vulnerabilities"]
+  }
+]
