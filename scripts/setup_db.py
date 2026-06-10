@@ -2,7 +2,7 @@ import os
 
 from dotenv import load_dotenv
 
-from app.db.arango_client import get_system_db, get_app_db
+from src.arango_client import get_system_db, get_app_db
 
 load_dotenv()
 

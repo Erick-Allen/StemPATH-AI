@@ -1,7 +1,7 @@
 import json
 import sys
 
-from app.db.arango_client import get_app_db
+from src.arango_client import get_app_db
 
 
 def main() -> None:

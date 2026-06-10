@@ -1,8 +1,7 @@
 import json
 from pathlib import Path
 
-from app.db.arango_client import get_app_db
-
+from src.arango_client import get_app_db
 
 DATA_PATH = Path(__file__).resolve().parents[1] / "data" / "seed_careers.json"
 
