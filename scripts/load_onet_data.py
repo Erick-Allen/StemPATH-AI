@@ -8,7 +8,7 @@ from src.arango_client import get_app_db
 
 
 # [Config] Source files and limits
-RAW = Path("data/raw")
+RAW = Path("data")
 MAX_OCCUPATIONS = 100
 
 FILES = {
