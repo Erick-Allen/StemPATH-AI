@@ -253,6 +253,11 @@ if search and question.strip():
     top_result = results[0]
     graph = top_result.get("graph_context", {})
 
+    st.markdown("### Generated Answer")
+
+    with st.container(border=True):
+        st.markdown(answer)
+
     st.divider()
 
     domains = graph.get("domains", [])

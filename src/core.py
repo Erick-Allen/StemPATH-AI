@@ -1,16 +1,29 @@
 import numpy as np
+import os
+from dotenv import load_dotenv
+from openai import OpenAI
 from sentence_transformers import SentenceTransformer
-
 from src.arango_client import get_app_db
 
 
 MODEL_NAME = "sentence-transformers/all-MiniLM-L6-v2"
 
+load_dotenv()
 
 class StemPathCore:
     def __init__(self):
         self.db = get_app_db()
         self.model = SentenceTransformer(MODEL_NAME)
+        self.use_llm = os.getenv("USE_LLM", "false").lower() == "true"
+        self.llm_model = os.getenv("LLM_MODEL", "local-model")
+
+        self.llm = None
+
+        if self.use_llm:
+            self.llm = OpenAI(
+                base_url=os.getenv("LLM_URL", "http://localhost:11434/v1"),
+                api_key=os.getenv("LLM_API_KEY", "not-needed"),
+            )
 
     def ensure_ready(self) -> None:
         documents = self.db.collection("documents")
@@ -95,19 +108,15 @@ class StemPathCore:
         tasks = ", ".join(graph.get("tasks", [])[:3])
         domains = ", ".join(graph.get("domains", []))
 
-        return f"""
-        Best match: {top_result["title"]}
-
-        This result was selected because its O*NET career document was the closest semantic match to the question: "{question}".
-
-        Domain: {domains}
-
-        Relevant skills: {skills}
-
-        Relevant technologies: {technologies}
-
-        Representative tasks: {tasks}
-        """.strip()
+        return (
+            f"Best match: {top_result['title']}\n\n"
+            f"This result was selected because its O*NET career document was the closest semantic match "
+            f'to the question: "{question}".\n\n'
+            f"Domain: {domains}\n\n"
+            f"Relevant skills: {skills}\n\n"
+            f"Relevant technologies: {technologies}\n\n"
+            f"Representative tasks: {tasks}"
+        )
 
     def query(self, question: str) -> tuple[str | None, list[dict]]:
         results = self.search_documents(question)
@@ -115,12 +124,16 @@ class StemPathCore:
         if not results:
             return None, []
 
-        top_result = results[0]
-        graph = self.get_graph_context(top_result["occupation_key"])
-        answer = self.build_answer(question, top_result, graph)
-
         for result in results:
             result["graph_context"] = self.get_graph_context(result["occupation_key"])
+
+        top_result = results[0]
+        graph = top_result["graph_context"]
+
+        answer = self.generate_llm_answer(question, top_result, graph)
+
+        if not answer:
+            answer = self.build_answer(question, top_result, graph)
 
         return answer, results
 
@@ -154,6 +167,68 @@ class StemPathCore:
             "description": occupation.get("description"),
             "graph_context": self.get_graph_context(occupation["_key"]),
         }
+    
+    def generate_llm_answer(self, question: str, top_result: dict, graph: dict) -> str | None:
+        if not self.use_llm or not self.llm:
+            return None
+
+        skills = ", ".join(graph.get("skills", [])[:8])
+        technologies = ", ".join(graph.get("technologies", [])[:8])
+        tasks = "\n".join(f"- {task}" for task in graph.get("tasks", [])[:5])
+        knowledge = ", ".join(graph.get("knowledge", [])[:8])
+        domains = ", ".join(graph.get("domains", []))
+
+        prompt = f"""
+        User question:
+        {question}
+
+        Matched occupation:
+        {top_result["title"]}
+
+        Career domain:
+        {domains}
+
+        O*NET career document:
+        {top_result["content"]}
+
+        Related skills:
+        {skills}
+
+        Related technologies:
+        {technologies}
+
+        Representative tasks:
+        {tasks}
+
+        Knowledge areas:
+        {knowledge}
+
+        Write a concise STEM career research answer using only the provided context.
+        Do not invent salary, job openings, degree requirements, or facts not shown here.
+        """.strip()
+
+        try:
+            response = self.llm.chat.completions.create(
+                model=self.llm_model,
+                messages=[
+                    {
+                        "role": "system",
+                        "content": "You are a grounded STEM career research assistant using O*NET graph context.",
+                    },
+                    {
+                        "role": "user",
+                        "content": prompt,
+                    },
+                ],
+                temperature=0.2,
+                max_tokens=500,
+            )
+
+            return response.choices[0].message.content.strip()
+
+        except Exception as error:
+            print(f"LLM generation failed: {error}")
+            return None
 
 def retrieve_graphrag_context(question: str) -> dict:
     core = StemPathCore()
